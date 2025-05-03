@@ -6,6 +6,7 @@ import { Star, PlayCircle, Calendar, User } from 'lucide-react'; // Added User i
 import Image from 'next/image';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import React from 'react'; // Import React
 
 interface TutorCardProps {
   tutor: Tutor;
@@ -70,19 +71,25 @@ export default function TutorCard({ tutor }: TutorCardProps) {
       <CardFooter className="pt-2 pb-4 px-4 flex justify-between items-center border-t mt-auto"> {/* Added border-t */}
         <Button asChild variant="ghost" size="sm" className="text-accent hover:bg-accent/10">
           <Link href={`/tutors/${tutor.id}`}>
-             {/* Removed unnecessary span wrapper */}
-             <User className="mr-1 h-4 w-4 inline-block align-middle" />
-             View Profile
+             {/* Wrap content in a span instead of Fragment */}
+             <span>
+               <User className="mr-1 h-4 w-4 inline-block align-middle" />
+               View Profile
+             </span>
            </Link>
         </Button>
          <Button asChild variant="default" size="sm">
            <Link href={`/booking?tutorId=${tutor.id}`}>
-              {/* Removed unnecessary span wrapper */}
-             <Calendar className="mr-1 h-4 w-4 inline-block align-middle" />
-             Book Now
+              {/* Wrap content in a span instead of Fragment */}
+              <span>
+               <Calendar className="mr-1 h-4 w-4 inline-block align-middle" />
+               Book Now
+              </span>
            </Link>
          </Button>
       </CardFooter>
     </Card>
   );
 }
+
+```

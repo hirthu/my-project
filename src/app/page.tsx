@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"; // Added CardFooter
-import { GraduationCap, Calendar, Bot, Star, BookOpen, BrainCircuit, Eye, Zap, Award, Users, BarChart3, Sparkles, UserCheck, Search, Clock, FileText, Smile, Headphones, Group, Mic, Radar, Repeat, HelpCircle as HelpCircleIcon, Puzzle, Unlock, Handshake, Clock3, StickyNote, Workflow, Video, Lock, UsersRound, Speech, FlaskConical, MonitorPlay, BadgePercent, LayoutDashboard, Download, MessageSquareHeart, Lightbulb, Brain, VideoIcon, AudioLines } from "lucide-react"; // Added more relevant icons
+import { GraduationCap, Calendar, Star, BookOpen, BrainCircuit, Eye, Zap, Award, Users, BarChart3, Sparkles, UserCheck, Search, Clock, FileText, Group, Mic, Radar, Repeat, HelpCircle as HelpCircleIcon, Puzzle, Unlock, Clock3, StickyNote, Workflow, Video, Lock, UsersRound, Speech, FlaskConical, MonitorPlay, BadgePercent, LayoutDashboard, Download, MessageSquareHeart, Lightbulb, Brain, VideoIcon, AudioLines, ChevronRight } from "lucide-react"; // Added more relevant icons // Corrected HelpCircle import
 import Image from 'next/image';
 import Link from 'next/link';
 // Import React for potential future use, not needed for styled-jsx anymore
@@ -188,8 +188,10 @@ function FeatureCard({ icon: Icon, title, description, link, linkText, dataAiHin
       <CardFooter className="pt-4 pb-6 text-center"> {/* Adjusted padding */}
          <Button asChild variant="link" className="text-accent text-base font-semibold mx-auto"> {/* Bolder, centered */}
            <Link href={link}>
-             {/* Removed unnecessary span wrapper */}
-             {linkText} &rarr;
+             {/* Wrap content in a span */}
+             <span className="flex items-center">
+               {linkText} <ChevronRight className="ml-1 h-4 w-4" />
+             </span>
             </Link>
          </Button>
        </CardFooter>

@@ -20,16 +20,20 @@ export default function BookingCalendar({ tutorId }: BookingCalendarProps) {
   const [selectedSlot, setSelectedSlot] = useState<BookingSlot | null>(null);
   const [isLoadingSlots, startLoadingSlots] = useTransition();
   const [isBooking, setIsBooking] = useState(false);
+  const [isClient, setIsClient] = useState(false); // State to track client mount
   const { toast } = useToast();
 
   useEffect(() => {
+    // Set isClient to true after initial mount
+    setIsClient(true);
     // Select today's date by default after component mounts on the client
     setSelectedDate(startOfDay(new Date()));
   }, []);
 
 
   useEffect(() => {
-    if (selectedDate && tutorId) {
+    // Ensure this effect only runs on the client after the initial date is set
+    if (selectedDate && tutorId && isClient) {
       setSlots([]); // Clear previous slots
       setSelectedSlot(null); // Clear selected slot
       startLoadingSlots(async () => {
@@ -47,7 +51,7 @@ export default function BookingCalendar({ tutorId }: BookingCalendarProps) {
         }
       });
     }
-  }, [selectedDate, tutorId, toast]);
+  }, [selectedDate, tutorId, toast, isClient]); // Add isClient dependency
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -87,6 +91,8 @@ export default function BookingCalendar({ tutorId }: BookingCalendarProps) {
       setSelectedSlot(null); // Reset selection
       // Optionally, refetch slots to show the booked one as unavailable
        startLoadingSlots(async () => {
+         // Ensure selectedDate exists before formatting
+         if (!selectedDate) return;
          const dateString = format(selectedDate, 'yyyy-MM-dd');
          const fetchedSlots = await getBookingSlots(tutorId, dateString);
          // Simulate booking update locally for demo purposes
@@ -112,17 +118,29 @@ export default function BookingCalendar({ tutorId }: BookingCalendarProps) {
     return format(date, 'p'); // Format like '10:00 AM'
   }
 
+  // Memoize the current date start of day to avoid recalculating on every render
+  // This calculation happens only once when the component initializes.
+  const today = React.useMemo(() => startOfDay(new Date()), []);
+
   return (
     <Card>
       <CardContent className="pt-6 flex flex-col md:flex-row gap-6 md:gap-8">
         <div className="flex justify-center">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            className="rounded-md border"
-            disabled={(date) => date < startOfDay(new Date())} // Disable past dates
-          />
+          {/* Only render the Calendar component on the client side after mount */}
+          {isClient ? (
+             <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              className="rounded-md border"
+              // Use the memoized 'today' value for disabling dates
+              disabled={(date) => date < today}
+            />
+          ) : (
+            // Render a skeleton or placeholder during SSR / initial render
+            <Skeleton className="h-[280px] w-[280px] rounded-md border" />
+          )}
+
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-semibold mb-3">
