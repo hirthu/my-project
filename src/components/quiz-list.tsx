@@ -70,20 +70,17 @@ export default function QuizList() {
           </CardHeader>
            <CardFooter className="mt-auto pt-0 pb-4 px-4"> {/* Adjusted padding */}
             {/* Link to actual quiz page e.g., /quizzes/[quizId] */}
-            <Button asChild className="w-full">
-               <Link href={`/quizzes/${quiz.id}`}>
-                 {/* Wrap content in a span instead of Fragment */}
-                 <span>
-                   <Play className="mr-2 h-4 w-4 inline-block" />
-                   Start Quiz
-                 </span>
-               </Link>
-            </Button>
+             <Link href={`/quizzes/${quiz.id}`} passHref legacyBehavior>
+                <Button className="w-full">
+                  <span className="flex items-center justify-center">
+                    <Play className="mr-2 h-4 w-4" />
+                    Start Quiz
+                  </span>
+                </Button>
+             </Link>
           </CardFooter>
         </Card>
       ))}
     </div>
   );
 }
-
-```

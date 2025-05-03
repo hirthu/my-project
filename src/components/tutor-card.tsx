@@ -69,27 +69,23 @@ export default function TutorCard({ tutor }: TutorCardProps) {
         </div>
       </CardContent>
       <CardFooter className="pt-2 pb-4 px-4 flex justify-between items-center border-t mt-auto"> {/* Added border-t */}
-        <Button asChild variant="ghost" size="sm" className="text-accent hover:bg-accent/10">
-          <Link href={`/tutors/${tutor.id}`}>
-             {/* Wrap content in a span instead of Fragment */}
-             <span>
-               <User className="mr-1 h-4 w-4 inline-block align-middle" />
-               View Profile
-             </span>
-           </Link>
-        </Button>
-         <Button asChild variant="default" size="sm">
-           <Link href={`/booking?tutorId=${tutor.id}`}>
-              {/* Wrap content in a span instead of Fragment */}
-              <span>
-               <Calendar className="mr-1 h-4 w-4 inline-block align-middle" />
-               Book Now
+        <Link href={`/tutors/${tutor.id}`} passHref legacyBehavior>
+           <Button variant="ghost" size="sm" className="text-accent hover:bg-accent/10">
+              <span className="flex items-center">
+                 <User className="mr-1 h-4 w-4 inline-block align-middle" />
+                 View Profile
               </span>
-           </Link>
-         </Button>
+           </Button>
+        </Link>
+         <Link href={`/booking?tutorId=${tutor.id}`} passHref legacyBehavior>
+            <Button variant="default" size="sm">
+              <span className="flex items-center">
+                 <Calendar className="mr-1 h-4 w-4 inline-block align-middle" />
+                 Book Now
+              </span>
+            </Button>
+         </Link>
       </CardFooter>
     </Card>
   );
 }
-
-```

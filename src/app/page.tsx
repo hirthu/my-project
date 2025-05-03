@@ -22,12 +22,12 @@ export default function Home() {
           Experience the future of learning. Find expert tutors, book sessions, master skills with AI, and unlock your potential.
         </p>
         <div className="space-x-4 animate-fade-in-up animation-delay-400">
-          <Button asChild size="lg">
-            <Link href="/tutors">Find Your Tutor</Link>
-          </Button>
-          <Button asChild variant="secondary" size="lg">
-             <Link href="/ai-companion">Explore AI Tools</Link>
-          </Button>
+          <Link href="/tutors" passHref legacyBehavior>
+             <Button size="lg">Find Your Tutor</Button>
+          </Link>
+          <Link href="/ai-companion" passHref legacyBehavior>
+             <Button variant="secondary" size="lg">Explore AI Tools</Button>
+          </Link>
         </div>
       </section>
 
@@ -186,14 +186,13 @@ function FeatureCard({ icon: Icon, title, description, link, linkText, dataAiHin
         </div>
       </CardContent>
       <CardFooter className="pt-4 pb-6 text-center"> {/* Adjusted padding */}
-         <Button asChild variant="link" className="text-accent text-base font-semibold mx-auto"> {/* Bolder, centered */}
-           <Link href={link}>
-             {/* Wrap content in a span */}
-             <span className="flex items-center">
-               {linkText} <ChevronRight className="ml-1 h-4 w-4" />
-             </span>
-            </Link>
-         </Button>
+         <Link href={link} passHref legacyBehavior>
+            <Button variant="link" className="text-accent text-base font-semibold mx-auto">
+              <span className="flex items-center">
+                {linkText} <ChevronRight className="ml-1 h-4 w-4" />
+              </span>
+            </Button>
+         </Link>
        </CardFooter>
     </Card>
   );
