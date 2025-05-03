@@ -9,6 +9,7 @@ import { getBookingSlots, type BookingSlot } from '@/services/booking';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 
 interface BookingCalendarProps {
   tutorId: string;
@@ -120,7 +121,7 @@ export default function BookingCalendar({ tutorId }: BookingCalendarProps) {
 
   // Memoize the current date start of day to avoid recalculating on every render
   // This calculation happens only once when the component initializes.
-  const today = React.useMemo(() => startOfDay(new Date()), []);
+  const today = React.useMemo(() => new Date(), []);
 
   return (
     <Card>
@@ -201,3 +202,4 @@ export default function BookingCalendar({ tutorId }: BookingCalendarProps) {
     </Card>
   );
 }
+
