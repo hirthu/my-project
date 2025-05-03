@@ -1,8 +1,14 @@
+// Add 'use client' directive because styled-jsx requires client-side execution
+'use client'; 
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, Calendar, Bot, Star, BookOpen } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
+// Import React for styled-jsx
+import React from 'react';
+
 
 export default function Home() {
   return (
