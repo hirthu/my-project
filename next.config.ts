@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+       // Add other image domains if needed later
     ],
   },
 };
