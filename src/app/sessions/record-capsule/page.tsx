@@ -9,11 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarIcon, Video, Mic, UploadCloud, History, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, addDays, startOfDay } from 'date-fns'; // Import addDays and startOfDay
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { addDays } from 'date-fns'; // Import addDays
 
 // Mock User ID
 const currentUserId = 'user123';
@@ -416,7 +415,7 @@ export default function RecordCapsulePage() {
                    <Button onClick={handleSave} disabled={isSaving || !releaseDate || !title.trim()} className="w-full">
                       {isSaving ? (
                           <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving Capsule...
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Encrypting & Saving Capsule...
                           </>
                       ) : (
                          <span className="flex items-center"><UploadCloud className="mr-2 h-4 w-4"/> Seal Time Capsule</span>
