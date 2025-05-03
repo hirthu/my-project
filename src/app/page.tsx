@@ -2,13 +2,12 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"; // Added CardFooter
-import { GraduationCap, Calendar, Star, BookOpen, BrainCircuit, Eye, Zap, Award, Users, BarChart3, Sparkles, UserCheck, Search, Clock, FileText, Group, Mic, Radar, Repeat, HelpCircle as HelpCircleIcon, Puzzle, Unlock, Clock3, StickyNote, Workflow, Video, Lock, UsersRound, Speech, FlaskConical, MonitorPlay, BadgePercent, LayoutDashboard, Download, MessageSquareHeart, Lightbulb, Brain, VideoIcon, AudioLines, ChevronRight } from "lucide-react"; // Added more relevant icons // Corrected HelpCircle import
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { GraduationCap, Calendar, Star, BookOpen, BrainCircuit, Eye, Zap, Award, Users, BarChart3, Sparkles, UserCheck, Search, Clock, FileText, Group, Mic, Radar, Repeat, HelpCircle as HelpCircleIcon, Puzzle, Unlock, Clock3, StickyNote, Workflow, Video, Lock, UsersRound, Speech, FlaskConical, MonitorPlay, BadgePercent, LayoutDashboard, Download, MessageSquareHeart, Lightbulb, Brain, VideoIcon, AudioLines, ChevronRight, Atom, BrainCog, History, ShieldCheck, Trees, Sigma, ClipboardList, Kanban, Bot, RadioTower, HandCoins, AlertCircle, BookCopy, Milestone, Users2, CalendarClock, Camera, TestTube, FileBadge, ShoppingBasket, SidebarOpen, WifiOff, Briefcase, Telescope, VideoOff } from "lucide-react"; // Added many more icons
 import Image from 'next/image';
 import Link from 'next/link';
-// Import React for potential future use, not needed for styled-jsx anymore
 import React from 'react';
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Import Tabs components
 
 export default function Home() {
   return (
@@ -22,10 +21,10 @@ export default function Home() {
           Experience the future of learning. Find expert tutors, book sessions, master skills with AI, and unlock your potential.
         </p>
         <div className="space-x-4 animate-fade-in-up animation-delay-400">
-          <Link href="/tutors" passHref legacyBehavior>
+          <Link href="/tutors" passHref>
              <Button size="lg">Find Your Tutor</Button>
           </Link>
-          <Link href="/ai-companion" passHref legacyBehavior>
+          <Link href="/ai-companion" passHref>
              <Button variant="secondary" size="lg">Explore AI Tools</Button>
           </Link>
         </div>
@@ -84,41 +83,74 @@ export default function Home() {
          </div>
        </section>
 
-      {/* Future Vision Section - Combined Lists */}
+      {/* Future Vision Section - Using Tabs */}
         <section className="w-full max-w-7xl py-16 bg-muted/50 rounded-lg px-6 md:px-10">
            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">The Future of TutorVerse: Innovation Ahead</h2>
-           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {/* Original Advanced Features */}
-             <VisionCard icon={Eye} title="AR/VR Learning Modules" description="Immersive 3D experiences for subjects like biology and physics."/>
-             <VisionCard icon={BarChart3} title="AI Adaptive Curriculum" description="Lesson plans dynamically tailored to your real-time progress."/>
-             <VisionCard icon={AudioLines} title="Voice Q&A Assistant" description="Ask questions with your voice and receive audio answers." />
-             <VisionCard icon={Zap} title="Engagement Analytics (Beta)" description="Eye-tracking insights (with consent) to help tutors refine methods." />
-             <VisionCard icon={Puzzle} title="Subject Learning Games" description="Gamified quizzes, challenges, and 'learning duels' for motivation." />
-             <VisionCard icon={FlaskConical} title="Live Experiment Simulations" description="Interactive physics/chemistry labs directly in your browser."/>
-             <VisionCard icon={FileText} title="Instant Certificates" description="Auto-generate PDF certificates for course completion and achievements." />
-             <VisionCard icon={BadgePercent} title="Tutor Subscription Marketplace" description="Tutors offer monthly bundles or 'starter packs'." />
-             <VisionCard icon={LayoutDashboard} title="Parent Insight Panel" description="Dedicated dashboard for parents to track progress and feedback." />
-             <VisionCard icon={Download} title="Offline Mode & Downloads" description="Access lessons offline, syncing progress when reconnected." />
-              {/* Community Features */}
-             <VisionCard icon={Users} title="Live Expert AMAs" description="Monthly sessions with educators and industry professionals." />
-             <VisionCard icon={Group} title="Study Circles & Group Rooms" description="Peer study groups with shared notes and whiteboards." />
-             <VisionCard icon={MonitorPlay} title="Career Path Explorer" description="Map subjects to potential careers and real-world applications." />
-              {/* Next-Level Unique Features */}
-             <VisionCard icon={Brain} title="Neurolearning Profiles" description="Identify your learning style for truly personalized tutoring." />
-             <VisionCard icon={Clock} title="Time Capsule Notes" description="Record audio/video reflections to unlock later for review." />
-             <VisionCard icon={VideoIcon} title="AI Tutor Shadowing" description="Watch recorded lessons from top-rated tutors (privacy protected)." />
-             <VisionCard icon={Lock} title="Private Tutoring Vault" description="Encrypted space for personal notes, recordings, and highlights." />
-             <VisionCard icon={Award} title="Skill Tree Learning Maps" description="Game-like visual map of your learning journey and achievements." />
-             <VisionCard icon={MessageSquareHeart} title="Emotion-Aware Feedback" description="AI analyzes feedback sentiment to track engagement and well-being." />
-             <VisionCard icon={StickyNote} title="Smart Sticky Notes" description="Attach searchable notes to video timestamps or whiteboard moments." />
-             <VisionCard icon={Workflow} title="Tutor Collaboration Boards" description="Shared spaces for tutors to co-plan lessons using Kanban boards." />
-             <VisionCard icon={Speech} title="Speech-to-Flashcards AI" description="Automatically create flashcards from session voice transcripts." />
-             <VisionCard icon={Radar} title='"Study Radar"' description="Discover trending topics and questions discussed by other students." />
-             <VisionCard icon={Repeat} title="Habit Loop Integration" description="Build consistent study routines with streaks, nudges, and rewards." />
-             <VisionCard icon={HelpCircleIcon} title="Panic Button Mode" description="Instantly connect with an available tutor when you're really stuck." />
-             <VisionCard icon={Lightbulb} title="Collaborative Problem Solving" description="Work anonymously with peers to solve challenging problems." />
-             <VisionCard icon={Clock3} title="Personal AI Scheduler" description="Learns your peak focus times and suggests optimal booking slots." />
-           </div>
+
+            <Tabs defaultValue="next-level" className="w-full">
+                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-8">
+                  <TabsTrigger value="next-level">🚀 Next-Level Unique</TabsTrigger>
+                  <TabsTrigger value="advanced">🔥 Advanced & Community</TabsTrigger>
+                  <TabsTrigger value="core-enhancements">⚙️ Core Enhancements</TabsTrigger>
+                </TabsList>
+
+                {/* Next-Level Unique Features Tab */}
+                <TabsContent value="next-level">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                     <VisionCard icon={BrainCog} title="Neurolearning Profiles" description="Diagnostic quizzes tailor tutoring to your unique learning style (visual, auditory, etc)." link="/onboarding/neuro-quiz" />
+                     <VisionCard icon={History} title="Time Capsule Notes" description="Record video/audio notes post-session to unlock and reflect on later." link="/sessions/record-capsule" />
+                     <VisionCard icon={VideoOff} title="AI Tutor Shadowing" description="Watch anonymized lessons from top-rated tutors to learn best practices." link="/sessions/shadowing" />
+                     <VisionCard icon={ShieldCheck} title="Private Tutoring Vault" description="Encrypted space for personal notes & recordings, secured with 2FA." link="/vault" />
+                     <VisionCard icon={Trees} title="Skill Tree Learning Map" description="Game-like visual map tracking your progress and unlocking new challenges." link="/skills" />
+                     <VisionCard icon={MessageSquareHeart} title="Emotion-Aware Feedback" description="AI analyzes emoji & text feedback to track engagement and suggest improvements." />
+                     <VisionCard icon={StickyNote} title="Smart Sticky Notes" description="Attach searchable notes to video timestamps or whiteboard moments." link="/notes" />
+                     <VisionCard icon={Kanban} title="Tutor Collaboration Boards" description="Shared planning spaces for tutors to co-create lessons in real-time." link="/tutor-collab" />
+                     <VisionCard icon={Bot} title="Speech-to-Flashcards AI" description="Automatically converts session transcripts into review flashcards." link="/flashcards" />
+                     <VisionCard icon={RadioTower} title='"Study Radar"' description="See trending topics and questions being discussed by peers in real-time." link="/radar" />
+                     <VisionCard icon={Repeat} title="Habit Loop Integration" description="Build study routines with streaks, nudges, and personalized progress tracking." link="/habits" />
+                     <VisionCard icon={AlertCircle} title="Panic Button Mode" description="Instantly request help from an available tutor when you're stuck." />
+                     <VisionCard icon={HandCoins} title="Weekly Brain Boost Challenge" description="Solve engaging weekly problems and earn digital trophies or certificates." link="/challenges" />
+                     <VisionCard icon={Users2} title="Collaborative Problem Solving" description="Work anonymously with peers in a shared space to tackle tough questions." link="/collab-solve" />
+                     <VisionCard icon={CalendarClock} title="Personal AI Scheduler" description="AI suggests optimal tutoring times based on your productivity patterns." />
+                   </div>
+                </TabsContent>
+
+                {/* Advanced & Community Features Tab */}
+                <TabsContent value="advanced">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                     <VisionCard icon={Camera} title="AR/VR Learning Modules" description="Immersive 3D/AR experiences for subjects like biology and physics (Premium)." />
+                     <VisionCard icon={Sigma} title="AI Adaptive Curriculum" description="Lesson plans dynamically adjust based on your real-time performance." />
+                     <VisionCard icon={AudioLines} title="Voice Q&A Assistant" description="Ask questions and get answers using voice commands." />
+                     <VisionCard icon={Eye} title="Engagement Analytics (Beta)" description="Optional eye-tracking insights to help tutors refine teaching methods." />
+                     <VisionCard icon={Puzzle} title="Subject Learning Games" description="Gamified quizzes, challenges, and 'learning duels' for motivation." link="/games" />
+                     <VisionCard icon={FlaskConical} title="Live Experiment Simulations" description="Interactive science experiments directly in your browser." />
+                     <VisionCard icon={FileBadge} title="Instant Certificate Generator" description="Auto-generate PDF certificates for course completion and achievements." />
+                     <VisionCard icon={ShoppingBasket} title="Tutor Subscription Marketplace" description="Tutors offer packaged services like monthly bundles or 'starter packs'." />
+                     <VisionCard icon={SidebarOpen} title="Parent Insight Panel" description="Dedicated dashboard for parents to track progress, feedback, and billing." />
+                     <VisionCard icon={WifiOff} title="Offline Mode & Downloads" description="Access lessons offline, syncing progress automatically when reconnected." />
+                     {/* Community */}
+                     <VisionCard icon={Users} title="Live Expert AMAs" description="Monthly interactive sessions with educators and industry professionals." link="/events/ama" />
+                     <VisionCard icon={UsersRound} title="Study Circles & Group Rooms" description="Join peer study groups with shared notes and virtual whiteboards." link="/groups" />
+                     <VisionCard icon={Briefcase} title="Career Path Explorer" description="Explore how subjects connect to real-world careers and skills." />
+                   </div>
+                </TabsContent>
+
+                {/* Core Enhancements Tab */}
+                 <TabsContent value="core-enhancements">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {/* Re-iterate or emphasize core improved features */}
+                     <VisionCard icon={UserCheck} title="Enhanced Tutor Profiles" description="Deeper insights with verified credentials, teaching philosophy, and student reviews." link="/tutors" />
+                     <VisionCard icon={BrainCircuit} title="Smarter AI Companion" description="Improved context understanding and proactive learning suggestions." link="/ai-companion" />
+                     <Calendar icon={Calendar} title="Advanced Booking Options" description="Recurring sessions, package deals, and flexible rescheduling." link="/booking" />
+                     <VisionCard icon={BookCopy} title="Expanded Quiz Library" description="More subjects, adaptive difficulty levels, and detailed performance reports." link="/quizzes" />
+                      <VisionCard icon={Telescope} title="Improved Search & Filtering" description="Find tutors by specific skills, availability, price range, and more." link="/tutors" />
+                     {/* Placeholder for future core enhancements */}
+                     <VisionCard icon={Milestone} title="Progress Tracking Dashboard" description="Visualize your learning journey, achievements, and areas for improvement." />
+                     <VisionCard icon={TestTube} title="Feature Testing Mode" description="Opt-in to try beta features and provide early feedback." />
+                   </div>
+                 </TabsContent>
+            </Tabs>
+
             <p className="text-center mt-12 text-muted-foreground italic">
               Just a glimpse into the innovative features shaping the future of personalized learning at TutorVerse...
             </p>
@@ -132,7 +164,7 @@ export default function Home() {
           <CardContent className="pt-6">
             <div className="flex justify-center mb-4">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-5 w-5 fill-secondary text-secondary" />
+                <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" /> // Changed fill to yellow
               ))}
             </div>
             <blockquote className="text-lg italic text-muted-foreground mb-4">
@@ -186,7 +218,7 @@ function FeatureCard({ icon: Icon, title, description, link, linkText, dataAiHin
         </div>
       </CardContent>
       <CardFooter className="pt-4 pb-6 text-center"> {/* Adjusted padding */}
-         <Link href={link} passHref legacyBehavior>
+         <Link href={link} passHref>
             <Button variant="link" className="text-accent text-base font-semibold mx-auto">
               <span className="flex items-center">
                 {linkText} <ChevronRight className="ml-1 h-4 w-4" />
@@ -229,18 +261,29 @@ interface VisionCardProps {
   icon: React.ElementType;
   title: string;
   description: string;
+  link?: string; // Optional link prop
 }
 
-function VisionCard({ icon: Icon, title, description }: VisionCardProps) {
-  return (
-    <div className="flex items-start space-x-4 p-4 bg-background rounded-lg shadow-sm transition-shadow hover:shadow-md">
-      <div className="p-3 rounded-full bg-accent/10 mt-1">
-        <Icon className="h-6 w-6 text-accent" />
+function VisionCard({ icon: Icon, title, description, link }: VisionCardProps) {
+  const content = (
+     <div className="flex items-start space-x-4 p-4 bg-background rounded-lg shadow-sm transition-shadow hover:shadow-md h-full"> {/* Added h-full */}
+        <div className="p-3 rounded-full bg-accent/10 mt-1 shrink-0"> {/* Added shrink-0 */}
+          <Icon className="h-6 w-6 text-accent" />
+        </div>
+        <div className="flex flex-col">
+          <h4 className="text-lg font-semibold mb-1">{title}</h4>
+          <p className="text-sm text-muted-foreground flex-grow">{description}</p> {/* Added flex-grow */}
+        </div>
       </div>
-      <div>
-        <h4 className="text-lg font-semibold mb-1">{title}</h4>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-    </div>
   );
+
+   if (link) {
+     return (
+       <Link href={link} passHref className="block h-full"> {/* Make link fill the card */}
+         {content}
+       </Link>
+     );
+   }
+
+  return content; // Return div if no link
 }
