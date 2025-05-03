@@ -7,8 +7,8 @@ import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export const metadata: Metadata = {
-  title: 'Book a Session - TutorVerse Lite',
-  description: 'Schedule your tutoring session.',
+  title: 'Book a Session - TutorVerse', // Updated title
+  description: 'Schedule your personalized tutoring session on TutorVerse.', // Updated description
 };
 
 async function TutorInfo({ tutorId }: { tutorId: string }) {

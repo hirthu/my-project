@@ -13,8 +13,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: 'TutorVerse Lite',
-  description: 'Redefining Online Tutoring',
+  title: 'TutorVerse', // Updated Title
+  description: 'Redefining Online Tutoring with AI and Personalized Learning', // Updated Description
 };
 
 export default function RootLayout({

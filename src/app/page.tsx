@@ -1,94 +1,134 @@
-// Add 'use client' directive because styled-jsx requires client-side execution
-'use client'; 
+// Add 'use client' directive because this page uses client-side hooks (implicitly via Image) and interactions
+'use client';
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Calendar, Bot, Star, BookOpen } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"; // Added CardFooter
+import { GraduationCap, Calendar, Bot, Star, BookOpen, BrainCircuit, Eye, Zap, Award, Users, BarChart3, Sparkles, UserCheck, Search, Clock, FileText, Smile, Headphones, Group, Mic, Radar, Repeat, HelpCircle as HelpCircleIcon, Puzzle, Unlock, Handshake, Clock3, StickyNote, Workflow, Video, Lock, UsersRound, Speech, FlaskConical, MonitorPlay, BadgePercent, LayoutDashboard, Download, MessageSquareHeart, Lightbulb, Brain, VideoIcon, AudioLines } from "lucide-react"; // Added more relevant icons
 import Image from 'next/image';
 import Link from 'next/link';
-// Import React for styled-jsx
+// Import React for potential future use, not needed for styled-jsx anymore
 import React from 'react';
 
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center space-y-12">
+    <div className="flex flex-col items-center space-y-16"> {/* Increased spacing */}
+      {/* Hero Section */}
       <section className="text-center pt-16 pb-8">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in-up">
-          Welcome to <span className="text-accent">TutorVerse Lite</span>
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 animate-fade-in-up"> {/* Larger title */}
+          Welcome to <span className="text-accent">TutorVerse</span> {/* Updated Name */}
         </h1>
-        <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
-          Find expert tutors, book sessions effortlessly, and get instant AI help anytime.
+        <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-fade-in-up animation-delay-200"> {/* Wider text */}
+          Experience the future of learning. Find expert tutors, book sessions, master skills with AI, and unlock your potential.
         </p>
         <div className="space-x-4 animate-fade-in-up animation-delay-400">
           <Button asChild size="lg">
-            <Link href="/tutors">Find a Tutor</Link>
+            <Link href="/tutors">Find Your Tutor</Link>
           </Button>
           <Button asChild variant="secondary" size="lg">
-             <Link href="/ai-companion">Ask AI</Link>
+             <Link href="/ai-companion">Explore AI Tools</Link>
           </Button>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
+      {/* Core Features Section */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl"> {/* Increased gap and max-width */}
         <FeatureCard
-          icon={GraduationCap}
-          title="Expert Tutors"
-          description="Discover experienced tutors with detailed profiles, intro videos, and verified ratings."
+          icon={UserCheck} // Changed icon
+          title="Personalized Tutoring"
+          description="Connect with verified experts. Profiles feature intro videos, ratings, and unique teaching styles."
           link="/tutors"
           linkText="Browse Tutors"
-          dataAiHint="teacher students classroom"
+          dataAiHint="teacher student online meeting"
         />
         <FeatureCard
+          icon={BrainCircuit} // Updated Icon
+          title="AI-Powered Learning"
+          description="Get instant help with our 24/7 AI companion, adaptive quizzes, and smart study tools."
+          link="/ai-companion"
+          linkText="Meet Your AI Buddy"
+          dataAiHint="robot brain artificial intelligence circuit"
+        />
+         <FeatureCard
           icon={Calendar}
-          title="Easy Booking"
-          description="View tutor availability and book sessions seamlessly with our integrated calendar system."
+          title="Seamless Scheduling"
+          description="Effortless booking system synced with tutor availability. Manage your sessions with ease."
           link="/booking"
           linkText="Book a Session"
-           dataAiHint="calendar schedule planning"
-        />
-        <FeatureCard
-          icon={Bot}
-          title="AI Study Buddy"
-          description="Get instant answers to your questions 24/7 with our intelligent AI companion."
-          link="/ai-companion"
-          linkText="Try AI Helper"
-          dataAiHint="robot chatbot artificial intelligence"
+           dataAiHint="calendar schedule planning interface"
         />
       </section>
 
-       {/* How it Works Section - Placeholder */}
+       {/* How it Works Section */}
        <section className="w-full max-w-5xl py-12">
-         <h2 className="text-3xl font-bold text-center mb-8">How It Works</h2>
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-           <div className="flex flex-col items-center">
-             <div className="p-4 bg-primary/10 rounded-full mb-4">
-                <GraduationCap className="h-8 w-8 text-primary" />
-             </div>
-             <h3 className="text-xl font-semibold mb-2">1. Find Your Tutor</h3>
-             <p className="text-muted-foreground">Browse profiles and filter by subject or rating.</p>
-           </div>
-           <div className="flex flex-col items-center">
-              <div className="p-4 bg-secondary/10 rounded-full mb-4">
-                <Calendar className="h-8 w-8 text-secondary-foreground" />
-              </div>
-             <h3 className="text-xl font-semibold mb-2">2. Book a Session</h3>
-             <p className="text-muted-foreground">Check availability and schedule with ease.</p>
-           </div>
-            <div className="flex flex-col items-center">
-               <div className="p-4 bg-accent/10 rounded-full mb-4">
-                 <BookOpen className="h-8 w-8 text-accent" />
-               </div>
-             <h3 className="text-xl font-semibold mb-2">3. Start Learning</h3>
-             <p className="text-muted-foreground">Connect with your tutor or use the AI companion.</p>
-           </div>
+         <h2 className="text-3xl md:text-4xl font-bold text-center mb-10">Simple Steps to Success</h2> {/* Updated title and margin */}
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center"> {/* Increased gap */}
+           <HowItWorksStep
+             icon={Search} // Changed icon
+             step="1"
+             title="Discover & Connect"
+             description="Browse tutor profiles, watch intros, and find the perfect match for your learning style."
+           />
+           <HowItWorksStep
+             icon={Calendar}
+              step="2"
+              title="Book & Prepare"
+             description="Select a time slot that works for you and get ready for your personalized session."
+           />
+            <HowItWorksStep
+              icon={Sparkles} // Updated icon
+               step="3"
+               title="Learn & Grow"
+             description="Engage in live sessions, use AI tools, track progress, and master new skills."
+           />
          </div>
        </section>
 
-      {/* Testimonial Section - Placeholder */}
+      {/* Future Vision Section - Combined Lists */}
+        <section className="w-full max-w-7xl py-16 bg-muted/50 rounded-lg px-6 md:px-10">
+           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">The Future of TutorVerse: Innovation Ahead</h2>
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {/* Original Advanced Features */}
+             <VisionCard icon={Eye} title="AR/VR Learning Modules" description="Immersive 3D experiences for subjects like biology and physics."/>
+             <VisionCard icon={BarChart3} title="AI Adaptive Curriculum" description="Lesson plans dynamically tailored to your real-time progress."/>
+             <VisionCard icon={AudioLines} title="Voice Q&A Assistant" description="Ask questions with your voice and receive audio answers." />
+             <VisionCard icon={Zap} title="Engagement Analytics (Beta)" description="Eye-tracking insights (with consent) to help tutors refine methods." />
+             <VisionCard icon={Puzzle} title="Subject Learning Games" description="Gamified quizzes, challenges, and 'learning duels' for motivation." />
+             <VisionCard icon={FlaskConical} title="Live Experiment Simulations" description="Interactive physics/chemistry labs directly in your browser."/>
+             <VisionCard icon={FileText} title="Instant Certificates" description="Auto-generate PDF certificates for course completion and achievements." />
+             <VisionCard icon={BadgePercent} title="Tutor Subscription Marketplace" description="Tutors offer monthly bundles or 'starter packs'." />
+             <VisionCard icon={LayoutDashboard} title="Parent Insight Panel" description="Dedicated dashboard for parents to track progress and feedback." />
+             <VisionCard icon={Download} title="Offline Mode & Downloads" description="Access lessons offline, syncing progress when reconnected." />
+              {/* Community Features */}
+             <VisionCard icon={Users} title="Live Expert AMAs" description="Monthly sessions with educators and industry professionals." />
+             <VisionCard icon={Group} title="Study Circles & Group Rooms" description="Peer study groups with shared notes and whiteboards." />
+             <VisionCard icon={MonitorPlay} title="Career Path Explorer" description="Map subjects to potential careers and real-world applications." />
+              {/* Next-Level Unique Features */}
+             <VisionCard icon={Brain} title="Neurolearning Profiles" description="Identify your learning style for truly personalized tutoring." />
+             <VisionCard icon={Clock} title="Time Capsule Notes" description="Record audio/video reflections to unlock later for review." />
+             <VisionCard icon={VideoIcon} title="AI Tutor Shadowing" description="Watch recorded lessons from top-rated tutors (privacy protected)." />
+             <VisionCard icon={Lock} title="Private Tutoring Vault" description="Encrypted space for personal notes, recordings, and highlights." />
+             <VisionCard icon={Award} title="Skill Tree Learning Maps" description="Game-like visual map of your learning journey and achievements." />
+             <VisionCard icon={MessageSquareHeart} title="Emotion-Aware Feedback" description="AI analyzes feedback sentiment to track engagement and well-being." />
+             <VisionCard icon={StickyNote} title="Smart Sticky Notes" description="Attach searchable notes to video timestamps or whiteboard moments." />
+             <VisionCard icon={Workflow} title="Tutor Collaboration Boards" description="Shared spaces for tutors to co-plan lessons using Kanban boards." />
+             <VisionCard icon={Speech} title="Speech-to-Flashcards AI" description="Automatically create flashcards from session voice transcripts." />
+             <VisionCard icon={Radar} title='"Study Radar"' description="Discover trending topics and questions discussed by other students." />
+             <VisionCard icon={Repeat} title="Habit Loop Integration" description="Build consistent study routines with streaks, nudges, and rewards." />
+             <VisionCard icon={HelpCircleIcon} title="Panic Button Mode" description="Instantly connect with an available tutor when you're really stuck." />
+             <VisionCard icon={Lightbulb} title="Collaborative Problem Solving" description="Work anonymously with peers to solve challenging problems." />
+             <VisionCard icon={Clock3} title="Personal AI Scheduler" description="Learns your peak focus times and suggests optimal booking slots." />
+           </div>
+            <p className="text-center mt-12 text-muted-foreground italic">
+              Just a glimpse into the innovative features shaping the future of personalized learning at TutorVerse...
+            </p>
+        </section>
+
+
+      {/* Testimonial Section */}
       <section className="w-full max-w-3xl py-12 text-center">
-        <h2 className="text-3xl font-bold mb-6">What Our Users Say</h2>
-        <Card className="bg-card shadow-lg">
+        <h2 className="text-3xl font-bold mb-6">What Our Learners Say</h2>
+        <Card className="bg-card shadow-lg transform transition-transform duration-300 hover:scale-105">
           <CardContent className="pt-6">
             <div className="flex justify-center mb-4">
               {[...Array(5)].map((_, i) => (
@@ -96,40 +136,16 @@ export default function Home() {
               ))}
             </div>
             <blockquote className="text-lg italic text-muted-foreground mb-4">
-              "TutorVerse Lite made finding a math tutor so simple! The AI helper is a lifesaver for late-night study sessions."
+              "TutorVerse transformed how I study. The tutors are amazing, and the AI helper is a game-changer for difficult concepts!"
             </blockquote>
-            <p className="font-semibold">Alex Johnson</p>
-            <p className="text-sm text-muted-foreground">High School Student</p>
+            <p className="font-semibold">Jamie Lee</p>
+            <p className="text-sm text-muted-foreground">University Student</p>
           </CardContent>
         </Card>
       </section>
 
-       {/* Add keyframes for animations */}
-      <style jsx>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.6s ease-out forwards;
-          opacity: 0; /* Start hidden */
-        }
-        .animation-delay-200 {
-          animation-delay: 0.2s;
-        }
-        .animation-delay-400 {
-          animation-delay: 0.4s;
-        }
-        .animation-delay-600 {
-          animation-delay: 0.6s;
-        }
-      `}</style>
+       {/* Animations are now defined in globals.css */}
+
     </div>
   );
 }
@@ -144,19 +160,20 @@ interface FeatureCardProps {
   dataAiHint?: string;
 }
 
+// Feature Card Component (minor style tweaks possible)
 function FeatureCard({ icon: Icon, title, description, link, linkText, dataAiHint }: FeatureCardProps) {
   return (
-    <Card className="flex flex-col transform transition-transform duration-300 hover:scale-105 hover:shadow-xl animate-fade-in-up animation-delay-600">
+    <Card className="flex flex-col transform transition-transform duration-300 hover:scale-105 hover:shadow-xl animate-fade-in-up animation-delay-600 bg-card group"> {/* Added group class */}
        <CardHeader className="items-center pb-4">
-        <div className="p-3 rounded-full bg-accent/10 mb-3">
-          <Icon className="h-8 w-8 text-accent" />
+        <div className="p-4 rounded-full bg-accent/10 mb-4 transition-colors duration-300 group-hover:bg-accent"> {/* Added group hover */}
+          <Icon className="h-10 w-10 text-accent transition-colors duration-300 group-hover:text-accent-foreground" /> {/* Larger Icon, Added group hover */}
         </div>
-        <CardTitle className="text-xl">{title}</CardTitle>
+        <CardTitle className="text-xl font-semibold">{title}</CardTitle> {/* Bolder Title */}
       </CardHeader>
-      <CardContent className="flex-grow text-center">
-        <CardDescription>{description}</CardDescription>
+      <CardContent className="flex-grow text-center px-6"> {/* Added padding */}
+        <CardDescription className="text-base">{description}</CardDescription> {/* Slightly larger text */}
          {/* Placeholder Image */}
-         <div className="mt-4 aspect-video relative overflow-hidden rounded-md bg-muted">
+         <div className="mt-6 aspect-video relative overflow-hidden rounded-lg bg-muted shadow-inner"> {/* Rounded-lg, shadow */}
           <Image
             src={`https://picsum.photos/seed/${title.replace(/\s+/g, '-')}/300/170`}
             alt={title}
@@ -164,14 +181,65 @@ function FeatureCard({ icon: Icon, title, description, link, linkText, dataAiHin
             style={{ objectFit: 'cover' }}
             data-ai-hint={dataAiHint}
             unoptimized // Using picsum, no need for Next image optimization
+            className="transition-transform duration-500 group-hover:scale-110" // Added subtle zoom on hover to group
           />
         </div>
       </CardContent>
-      <CardContent className="pt-0 text-center">
-         <Button asChild variant="link" className="text-accent">
-           <Link href={link}>{linkText}</Link>
+      <CardFooter className="pt-4 pb-6 text-center"> {/* Adjusted padding */}
+         <Button asChild variant="link" className="text-accent text-base font-semibold mx-auto"> {/* Bolder, centered */}
+           <Link href={link}>
+             {/* Removed unnecessary span wrapper */}
+             {linkText} &rarr;
+            </Link>
          </Button>
-       </CardContent>
+       </CardFooter>
     </Card>
+  );
+}
+
+// How It Works Step Component
+interface HowItWorksStepProps {
+  icon: React.ElementType;
+  step: string;
+  title: string;
+  description: string;
+}
+
+function HowItWorksStep({ icon: Icon, step, title, description }: HowItWorksStepProps) {
+  return (
+    <div className="flex flex-col items-center p-4">
+      <div className="relative mb-4">
+         <div className="p-5 bg-primary/10 rounded-full">
+           <Icon className="h-10 w-10 text-primary" />
+         </div>
+         <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xs">
+           {step}
+         </span>
+      </div>
+      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+      <p className="text-muted-foreground max-w-xs">{description}</p>
+    </div>
+  );
+}
+
+
+// Vision Card Component (for Future Vision section)
+interface VisionCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}
+
+function VisionCard({ icon: Icon, title, description }: VisionCardProps) {
+  return (
+    <div className="flex items-start space-x-4 p-4 bg-background rounded-lg shadow-sm transition-shadow hover:shadow-md">
+      <div className="p-3 rounded-full bg-accent/10 mt-1">
+        <Icon className="h-6 w-6 text-accent" />
+      </div>
+      <div>
+        <h4 className="text-lg font-semibold mb-1">{title}</h4>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+    </div>
   );
 }
