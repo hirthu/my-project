@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
@@ -12,20 +13,48 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { addDays } from 'date-fns'; // Import addDays
 
-// Mock function to simulate saving data
-const saveTimeCapsuleNote = async (data: { type: 'video' | 'audio', mediaBlob: Blob, releaseDate: Date, title: string }) => {
-  console.log('Saving Time Capsule Note:', {
+// Mock User ID
+const currentUserId = 'user123';
+
+// Mock function to simulate saving data to Firestore/Storage
+const saveTimeCapsuleNote = async (userId: string, data: { type: 'video' | 'audio', mediaBlob: Blob, releaseDate: Date, title: string }) => {
+  console.log(`Saving Time Capsule Note for user ${userId}:`, {
     type: data.type,
     size: data.mediaBlob.size,
     releaseDate: data.releaseDate.toISOString(),
     title: data.title,
   });
+
   // Simulate upload delay
   await new Promise(resolve => setTimeout(resolve, 2000));
+
   // Simulate success/failure
   if (Math.random() > 0.1) { // 90% success rate
-    return { success: true, id: `capsule_${Date.now()}` };
+    const capsuleId = `capsule_${Date.now()}`;
+    const metadata = {
+       id: capsuleId,
+       userId: userId,
+       type: data.type,
+       title: data.title,
+       releaseTimestamp: data.releaseDate.toISOString(),
+       // storagePath: `gs://your-bucket/time-capsules/${userId}/${capsuleId}.${data.type === 'video' ? 'webm' : 'ogg'}`, // Example storage path
+       createdAt: new Date().toISOString(),
+    };
+     // Mock storing metadata in localStorage
+     try {
+        const existingCapsules = JSON.parse(localStorage.getItem(`tutorverseTimeCapsules_${userId}`) || '[]');
+        existingCapsules.push(metadata);
+        localStorage.setItem(`tutorverseTimeCapsules_${userId}`, JSON.stringify(existingCapsules));
+     } catch (e) { console.error("Failed to save mock metadata", e)}
+
+     // TODO: In a real app:
+     // 1. Upload data.mediaBlob to Firebase Storage at storagePath
+     // 2. Save metadata to Firestore document /users/{userId}/timeCapsules/{capsuleId}
+     // 3. Schedule a Cloud Function (e.g., using Cloud Tasks or Firestore TTL) to trigger notification near releaseTimestamp
+
+    return { success: true, id: capsuleId };
   } else {
     throw new Error('Simulated upload failure.');
   }
@@ -48,9 +77,12 @@ export default function RecordCapsulePage() {
   const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
+   const router = useRouter(); // Initialize router
 
   useEffect(() => {
     setIsClient(true); // Indicate component has mounted on client
+     // Set default release date to tomorrow
+     setReleaseDate(addDays(new Date(), 1));
   }, []);
 
   const requestPermissions = async (type: 'video' | 'audio') => {
@@ -85,15 +117,31 @@ export default function RecordCapsulePage() {
     if (!permissionGranted || !streamRef.current) return;
 
     try {
-      const options = { mimeType: noteType === 'video' ? 'video/webm;codecs=vp9' : 'audio/webm' };
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-         console.warn(`${options.mimeType} not supported, trying default.`);
-         // Fallback to default or try other codecs if needed
-         options.mimeType = noteType === 'video' ? 'video/webm' : 'audio/ogg; codecs=opus';
-         if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-           toast({ title: "Recording Error", description: "Browser doesn't support required media types.", variant: "destructive" });
-           return;
-         }
+       // Prioritize common formats, fallback if needed
+       let options = { mimeType: '' };
+       if (noteType === 'video') {
+          if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+              options.mimeType = 'video/webm;codecs=vp9';
+          } else if (MediaRecorder.isTypeSupported('video/webm')) {
+             options.mimeType = 'video/webm';
+          } else if (MediaRecorder.isTypeSupported('video/mp4')) { // Less common for recording directly
+             options.mimeType = 'video/mp4';
+          }
+       } else { // audio
+          if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+             options.mimeType = 'audio/webm;codecs=opus';
+          } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+             options.mimeType = 'audio/ogg;codecs=opus';
+          } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+              options.mimeType = 'audio/mp4';
+          } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+             options.mimeType = 'audio/webm';
+          }
+       }
+
+       if (!options.mimeType) {
+          toast({ title: "Recording Error", description: "No supported media format found in this browser.", variant: "destructive" });
+          return;
        }
 
       mediaRecorderRef.current = new MediaRecorder(streamRef.current, options);
@@ -145,7 +193,7 @@ export default function RecordCapsulePage() {
        setNoteType(null);
        setIsRecording(false);
        setMediaBlob(null);
-       setReleaseDate(undefined);
+       setReleaseDate(addDays(new Date(), 1)); // Reset to tomorrow
        setTitle('');
        setShowSuccess(false);
        if (videoRef.current) {
@@ -169,19 +217,23 @@ export default function RecordCapsulePage() {
        toast({ title: "Missing Information", description: "Please record a note, set a title, and choose a release date.", variant: "destructive"});
        return;
     }
-    if (releaseDate <= new Date()) {
+     const today = new Date();
+     today.setHours(0, 0, 0, 0);
+     const releaseDay = new Date(releaseDate);
+     releaseDay.setHours(0, 0, 0, 0);
+
+     if (releaseDay <= today) {
        toast({ title: "Invalid Date", description: "Release date must be in the future.", variant: "destructive"});
        return;
     }
 
     setIsSaving(true);
     try {
-      const result = await saveTimeCapsuleNote({ type: noteType, mediaBlob, releaseDate, title: title.trim() });
+      const result = await saveTimeCapsuleNote(currentUserId, { type: noteType, mediaBlob, releaseDate, title: title.trim() });
       if (result.success) {
          setShowSuccess(true);
          toast({ title: "Capsule Saved!", description: `Your note "${title.trim()}" will unlock on ${format(releaseDate, 'PPP')}.` });
-         // Reset fields after successful save might be desired, or navigate away
-         // handleReset(); // Optionally reset form
+         // Optionally reset form after a short delay, or let the success screen handle it
       }
     } catch (error) {
       console.error('Failed to save time capsule:', error);
@@ -195,8 +247,8 @@ export default function RecordCapsulePage() {
     }
   };
 
-   // Memoize today's date to prevent re-calculation causing Calendar issues
-   const today = React.useMemo(() => new Date(), []);
+   // Memoize today's date start of day
+   const todayStart = React.useMemo(() => startOfDay(new Date()), []);
 
     if (!isClient) {
      // Render loading state or null during SSR/hydration
@@ -206,7 +258,7 @@ export default function RecordCapsulePage() {
    if (showSuccess) {
        return (
           <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)]">
-             <Card className="w-full max-w-md text-center p-6 shadow-lg">
+             <Card className="w-full max-w-md text-center p-6 shadow-lg animate-fade-in-up">
                 <CardHeader>
                    <div className="flex justify-center mb-4">
                        <UploadCloud className="h-16 w-16 text-green-500" />
@@ -218,12 +270,12 @@ export default function RecordCapsulePage() {
                    <p className="text-lg mb-4">
                        Your note titled <span className="font-semibold">"{title}"</span> will automatically unlock and notify you on:
                    </p>
-                   <p className="text-2xl font-bold text-accent mb-6">
+                   <p className="text-2xl font-bold text-primary mb-6">
                       {releaseDate ? format(releaseDate, 'PPP') : 'Selected Date'}
                    </p>
                     <Button className="mt-6 mr-2" onClick={handleReset}>Record Another Note</Button>
                     {/* TODO: Add Link to view all capsules */}
-                    <Button variant="outline" className="mt-6" onClick={() => {/* Navigate to dashboard */}}>Go to Dashboard</Button>
+                    <Button variant="outline" className="mt-6" onClick={() => router.push('/')}>Go to Dashboard</Button>
                  </CardContent>
              </Card>
           </div>
@@ -232,8 +284,10 @@ export default function RecordCapsulePage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-2 text-center">Create Time Capsule Note</h1>
-      <p className="text-muted-foreground mb-6 text-center">Record a short video or audio reflection about your session.</p>
+      <h1 className="text-3xl font-bold mb-2 text-center flex items-center justify-center">
+         <History className="h-8 w-8 mr-2 text-primary"/> Create Time Capsule Note
+      </h1>
+      <p className="text-muted-foreground mb-6 text-center">Record a short video or audio reflection about your session. It will unlock on the date you choose!</p>
 
       <Card className="shadow-md">
          <CardHeader>
@@ -328,10 +382,12 @@ export default function RecordCapsulePage() {
                          onChange={(e) => setTitle(e.target.value)}
                          placeholder="e.g., Key takeaways from Algebra session"
                          disabled={isSaving}
+                         maxLength={100} // Add a reasonable max length
                       />
+                       <p className="text-xs text-muted-foreground mt-1">{100 - title.length} characters remaining</p>
                    </div>
                    <div>
-                      <Label>Release Date (When to unlock this note)</Label>
+                      <Label>Release Date (Must be in the future)</Label>
                        <Popover>
                           <PopoverTrigger asChild>
                             <Button
@@ -351,7 +407,7 @@ export default function RecordCapsulePage() {
                                mode="single"
                                selected={releaseDate}
                                onSelect={setReleaseDate}
-                               disabled={(date) => date <= today } // Disable past dates using memoized today
+                               disabled={(date) => date <= todayStart } // Disable today and past dates
                                initialFocus
                             />
                           </PopoverContent>
@@ -363,7 +419,7 @@ export default function RecordCapsulePage() {
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving Capsule...
                           </>
                       ) : (
-                         <span className="flex items-center"><History className="mr-2 h-4 w-4"/> Seal Time Capsule</span>
+                         <span className="flex items-center"><UploadCloud className="mr-2 h-4 w-4"/> Seal Time Capsule</span>
                       )}
                    </Button>
                </CardContent>

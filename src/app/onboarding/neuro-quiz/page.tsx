@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { BrainCog, CheckCircle } from 'lucide-react';
+import { BrainCog, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 // Mock questions for the quiz
@@ -61,12 +62,31 @@ const quizQuestions = [
 type Answers = Record<number, string>;
 type LearningStyles = Record<'visual' | 'auditory' | 'kinesthetic', number>;
 
+// Mock user ID
+const currentUserId = 'user123';
+
+// Mock function to save profile - replace with Firestore update
+const saveNeuroProfile = async (userId: string, dominantStyle: string): Promise<boolean> => {
+   console.log(`Saving neuro profile for user ${userId}: ${dominantStyle}`);
+   await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    try {
+       localStorage.setItem(`tutorverseNeuroProfile_${userId}`, JSON.stringify({ neuroType: dominantStyle, completedAt: new Date() }));
+       return true;
+    } catch (error) {
+        console.error("Error saving neuro profile:", error);
+        return false;
+    }
+};
+
+
 export default function NeuroQuizPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [learningStyle, setLearningStyle] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const router = useRouter(); // Initialize router
 
   const handleAnswerSelect = (questionId: number, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -95,7 +115,7 @@ export default function NeuroQuizPage() {
    };
 
 
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = async () => {
     // Calculate the predominant learning style
     const styleCounts: LearningStyles = { visual: 0, auditory: 0, kinesthetic: 0 };
     Object.values(answers).forEach((answer) => {
@@ -120,16 +140,31 @@ export default function NeuroQuizPage() {
     });
 
     setLearningStyle(dominantStyle);
-    setQuizCompleted(true);
+    setIsSaving(true);
 
-    // TODO: Save results to Firestore
-    console.log('Quiz Submitted. Dominant Style:', dominantStyle);
-    console.log('All Answers:', answers);
-     toast({
-        title: 'Quiz Complete!',
-        description: `Your primary learning style appears to be ${dominantStyle}.`,
-     });
-    // Example: await saveNeuroProfile(userId, dominantStyle);
+    try {
+      const success = await saveNeuroProfile(currentUserId, dominantStyle);
+       if (success) {
+          setQuizCompleted(true);
+          toast({
+             title: 'Quiz Complete!',
+             description: `Your primary learning style appears to be ${dominantStyle}.`,
+          });
+       } else {
+          throw new Error("Failed to save profile");
+       }
+    } catch (error) {
+       console.error('Quiz Submission Error:', error);
+       toast({
+         title: 'Error Saving Profile',
+         description: 'Could not save your learning style. Please try finishing again.',
+         variant: 'destructive',
+       });
+        setLearningStyle(null); // Reset style on error
+    } finally {
+       setIsSaving(false);
+    }
+
   };
 
   const progress = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
@@ -137,26 +172,30 @@ export default function NeuroQuizPage() {
   if (quizCompleted && learningStyle) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)]">
-        <Card className="w-full max-w-md text-center p-6 shadow-lg">
+        <Card className="w-full max-w-md text-center p-6 shadow-lg animate-fade-in-up">
           <CardHeader>
              <div className="flex justify-center mb-4">
                <CheckCircle className="h-16 w-16 text-green-500" />
              </div>
-            <CardTitle className="text-2xl">Quiz Complete!</CardTitle>
-            <CardDescription>Thank you for completing the learning style assessment.</CardDescription>
+            <CardTitle className="text-2xl">Learning Style Identified!</CardTitle>
+            <CardDescription>Thank you for completing the assessment.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-lg mb-4">
-              Based on your answers, your primary learning style seems to be:
+            <p className="text-lg mb-2">
+              Your primary learning style appears to be:
             </p>
-            <p className="text-2xl font-bold text-accent capitalize mb-6">{learningStyle}</p>
+            <p className="text-3xl font-bold text-primary capitalize mb-4">{learningStyle}</p>
+             <p className="text-base mb-6">
+                {learningStyle === 'visual' && 'You likely learn best through seeing information, like diagrams, text, and demonstrations.'}
+                {learningStyle === 'auditory' && 'You probably retain information well by listening to lectures, discussions, and verbal instructions.'}
+                 {learningStyle === 'kinesthetic' && 'You tend to learn most effectively by doing, hands-on activities, and physical engagement.'}
+             </p>
             <p className="text-muted-foreground text-sm">
-              We'll use this insight to help match you with tutors and suggest learning strategies best suited for you.
+              We'll use this insight to help suggest suitable tutors and learning resources.
             </p>
-             {/* TODO: Add link back to dashboard or next onboarding step */}
-              <Button className="mt-6" onClick={() => { /* Navigate back or to next step */ }}>
-                 Continue Onboarding
-              </Button>
+             <Button className="mt-6" onClick={() => router.push('/')}> {/* Navigate back to home */}
+                Back to Dashboard
+             </Button>
           </CardContent>
         </Card>
       </div>
@@ -167,13 +206,15 @@ export default function NeuroQuizPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-2 text-center">Learning Style Quiz</h1>
-      <p className="text-muted-foreground mb-6 text-center">Help us understand how you learn best!</p>
+      <h1 className="text-3xl font-bold mb-2 text-center flex items-center justify-center">
+         <BrainCog className="h-8 w-8 mr-2 text-primary"/> Learning Style Quiz
+      </h1>
+      <p className="text-muted-foreground mb-6 text-center">Help us understand how you learn best! (Just {quizQuestions.length} questions)</p>
       <Card className="shadow-md">
          <CardHeader>
            <Progress value={progress} className="w-full mb-4" />
-           <CardTitle className="text-xl">Question {currentQuestion.id} of {quizQuestions.length}</CardTitle>
-           <CardDescription className="text-lg pt-2">{currentQuestion.question}</CardDescription>
+           <CardTitle className="text-lg">Question {currentQuestion.id} / {quizQuestions.length}</CardTitle>
+           <CardDescription className="text-base pt-2">{currentQuestion.question}</CardDescription>
          </CardHeader>
         <CardContent>
           <RadioGroup
@@ -182,21 +223,27 @@ export default function NeuroQuizPage() {
             className="space-y-3"
           >
             {currentQuestion.options.map((option) => (
-              <div key={option.value} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-muted/50 transition-colors">
+              <Label
+                key={option.value}
+                htmlFor={`${currentQuestion.id}-${option.value}`}
+                 className={cn(
+                    "flex items-center space-x-3 p-3 border rounded-md cursor-pointer transition-colors hover:bg-muted/50",
+                    answers[currentQuestion.id] === option.value && "border-primary bg-primary/10"
+                )}
+              >
                 <RadioGroupItem value={option.value} id={`${currentQuestion.id}-${option.value}`} />
-                <Label htmlFor={`${currentQuestion.id}-${option.value}`} className="flex-1 cursor-pointer text-base">
-                  {option.label}
-                </Label>
-              </div>
+                <span className="flex-1 text-sm">{option.label}</span>
+              </Label>
             ))}
           </RadioGroup>
         </CardContent>
         <CardFooter className="flex justify-between pt-4 border-t">
-           <Button variant="outline" onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>
+           <Button variant="outline" onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0 || isSaving}>
              Previous
            </Button>
-          <Button onClick={handleNextQuestion}>
-            {currentQuestionIndex === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+           <Button onClick={handleNextQuestion} disabled={isSaving || !answers[currentQuestion.id]}>
+             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+             {currentQuestionIndex === quizQuestions.length - 1 ? (isSaving ? 'Saving...' : 'Finish Quiz') : 'Next Question'}
           </Button>
         </CardFooter>
       </Card>

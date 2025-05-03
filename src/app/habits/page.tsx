@@ -1,103 +1,186 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
 import { Button } from '@/components/ui/button';
-import { Repeat, Zap, CalendarCheck, Clock, BarChart, Target, Award, Loader2 } from 'lucide-react';
+import { Repeat, Zap, CalendarCheck, Clock, BarChart, Target, Award, Loader2, Info } from 'lucide-react'; // Added Info
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 // Mock Data Interface
 interface HabitData {
-  loginStreak: number; // Consecutive days logged in
-  sessionsAttended: number; // Total sessions attended this week/month
-  practiceMinutes: number; // Total minutes spent on quizzes/practice this week/month
+  userId: string;
+  loginStreak: number;
+  sessionsAttendedThisWeek: number;
+  practiceMinutesThisWeek: number;
   lastLogin: Date | null;
-  // Potentially add goals
-  weeklySessionGoal?: number;
-  weeklyPracticeGoal?: number;
+  // Goals
+  weeklySessionGoal: number;
+  weeklyPracticeGoal: number; // in minutes
 }
 
-// Mock function to fetch habit data - replace with Firestore query
+// Mock User ID
+const userId = 'user123';
+
+// --- Mock API Functions ---
+
+// Fetch habit data - replace with Firestore query
 const fetchHabitData = async (userId: string): Promise<HabitData> => {
   console.log(`Fetching habit data for user ${userId}...`);
-  await new Promise(resolve => setTimeout(resolve, 700)); // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 700));
 
     try {
         const storedData = localStorage.getItem(`tutorverseHabits_${userId}`);
         if (storedData) {
-            const parsed = JSON.parse(storedData) as HabitData;
-            return { ...parsed, lastLogin: parsed.lastLogin ? new Date(parsed.lastLogin) : null };
+            const parsed = JSON.parse(storedData) as any; // Use any for date parsing
+            return {
+               ...parsed,
+               userId: userId,
+               lastLogin: parsed.lastLogin ? new Date(parsed.lastLogin) : null,
+               // Ensure defaults if goals are missing
+               weeklySessionGoal: parsed.weeklySessionGoal ?? 3,
+               weeklyPracticeGoal: parsed.weeklyPracticeGoal ?? 120,
+            };
         }
     } catch (error) { console.error("Error reading habits:", error); }
 
-  // Default mock data
+  // Default mock data if nothing found
   return {
-    loginStreak: 3,
-    sessionsAttended: 2,
-    practiceMinutes: 45,
-    lastLogin: new Date(Date.now() - 86400000), // Yesterday
+    userId: userId,
+    loginStreak: 0, // Start at 0, update on load
+    sessionsAttendedThisWeek: 0,
+    practiceMinutesThisWeek: 0,
+    lastLogin: null,
     weeklySessionGoal: 3,
     weeklyPracticeGoal: 120,
   };
 };
 
-// Mock function to update habit data (e.g., on login, session completion) - replace with Firestore update/Cloud Function trigger
-const updateHabitData = async (userId: string, updatedData: Partial<HabitData>): Promise<boolean> => {
-    console.log(`Updating habit data for user ${userId}:`, updatedData);
+// Update habit data - replace with Firestore update/Cloud Function trigger
+const updateHabitData = async (userId: string, updates: Partial<Omit<HabitData, 'userId' | 'lastLogin'>>): Promise<HabitData> => {
+    console.log(`Updating habit data for ${userId}:`, updates);
     await new Promise(resolve => setTimeout(resolve, 300));
-     try {
-        const currentData = await fetchHabitData(userId);
-        const newData = { ...currentData, ...updatedData, lastLogin: new Date() }; // Always update lastLogin on update
-        // Basic streak logic (needs proper date checking in real app)
-        if (updatedData.loginStreak !== undefined) {
-            newData.loginStreak = updatedData.loginStreak;
-        } else if (newData.lastLogin && currentData.lastLogin) {
-            const today = new Date(); today.setHours(0,0,0,0);
-            const lastLog = new Date(currentData.lastLogin); lastLog.setHours(0,0,0,0);
+
+    let currentData = await fetchHabitData(userId); // Get current state
+    let newData = { ...currentData, ...updates }; // Apply updates
+
+    // --- Login Streak Logic ---
+    const today = new Date(); today.setHours(0,0,0,0);
+    const lastLog = currentData.lastLogin ? new Date(currentData.lastLogin) : null;
+    if (lastLog) lastLog.setHours(0,0,0,0);
+
+    const isSameDayLogin = lastLog && lastLog.getTime() === today.getTime();
+
+    if (!isSameDayLogin) { // Only update streak if it's a new day login
+        if (lastLog) {
             const diffDays = (today.getTime() - lastLog.getTime()) / (1000 * 3600 * 24);
             if (diffDays === 1) {
-                newData.loginStreak = (currentData.loginStreak || 0) + 1;
+                newData.loginStreak = (currentData.loginStreak || 0) + 1; // Increment streak
             } else if (diffDays > 1) {
                 newData.loginStreak = 1; // Reset streak if missed more than a day
             }
-            // If diffDays is 0 or less, streak remains the same
+            // If diffDays <= 0 (shouldn't happen with !isSameDayLogin), streak remains
         } else {
-             newData.loginStreak = 1; // First login
+             newData.loginStreak = 1; // First login ever
         }
+        newData.lastLogin = new Date(); // Update lastLogin timestamp only on new day login
+    }
+     // If it *is* the same day, don't change streak or lastLogin for streak purposes
 
+     // --- Weekly Reset Logic (Simplified Example) ---
+     // In a real app, use server-side logic (Cloud Function) and track week start/end
+     const currentWeek = Math.floor(Date.now() / (1000 * 60 * 60 * 24 * 7));
+     const storedWeek = localStorage.getItem(`tutorverseHabitsWeek_${userId}`);
+     if (!storedWeek || parseInt(storedWeek) < currentWeek) {
+         console.log("New week detected, resetting weekly stats.");
+         newData.sessionsAttendedThisWeek = updates.sessionsAttendedThisWeek ?? 0; // Start fresh with current update or 0
+         newData.practiceMinutesThisWeek = updates.practiceMinutesThisWeek ?? 0;
+         localStorage.setItem(`tutorverseHabitsWeek_${userId}`, currentWeek.toString());
+     } else {
+        // Accumulate if within the same week
+         if (updates.sessionsAttendedThisWeek !== undefined) {
+            newData.sessionsAttendedThisWeek = (currentData.sessionsAttendedThisWeek || 0) + updates.sessionsAttendedThisWeek;
+         }
+          if (updates.practiceMinutesThisWeek !== undefined) {
+            newData.practiceMinutesThisWeek = (currentData.practiceMinutesThisWeek || 0) + updates.practiceMinutesThisWeek;
+         }
+     }
+
+
+    // Save the final updated state
+     try {
         localStorage.setItem(`tutorverseHabits_${userId}`, JSON.stringify(newData));
-        return true;
+        return newData; // Return the fully updated data
      } catch (error) {
         console.error("Error saving habits:", error);
-        return false;
+        throw error; // Rethrow error to be caught by caller
      }
 }
 
 
+// --- Page Component ---
 export default function HabitTrackerPage() {
   const [habitData, setHabitData] = useState<HabitData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  // Mock user ID
-  const userId = 'user123';
+  // Load data and simulate login on mount
+  const loadDataAndLogLogin = useCallback(async () => {
+    setIsLoading(true);
+    try {
+        // Trigger updateHabitData to check/update login streak
+        const data = await updateHabitData(userId, {}); // Empty update just logs login
+        setHabitData(data);
+    } catch (error) {
+      console.error("Failed to load habit data:", error);
+      toast({ title: "Error", description: "Could not load habit tracking data.", variant: "destructive"});
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]); // Include toast in dependencies
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
+    loadDataAndLogLogin();
+  }, [loadDataAndLogLogin]);
+
+
+   // Simulate adding practice time
+   const logPracticeTime = async (minutes: number) => {
+      if (!habitData) return;
+      console.log(`Logging ${minutes} minutes of practice...`);
       try {
-          // Simulate login update on page load for demo purposes
-          // In a real app, this would likely happen server-side or on auth state change
-         await updateHabitData(userId, {}); // Pass empty object to trigger login/streak update
-         const data = await fetchHabitData(userId);
-         setHabitData(data);
+         // Optimistic update (optional but improves perceived speed)
+         setHabitData(prev => prev ? ({
+             ...prev,
+             practiceMinutesThisWeek: (prev.practiceMinutesThisWeek || 0) + minutes
+         }) : null);
+          const updatedData = await updateHabitData(userId, { practiceMinutesThisWeek: minutes });
+         setHabitData(updatedData); // Update with confirmed data
+         toast({title: "Practice Logged!", description: `${minutes} minutes added to your weekly total.`});
       } catch (error) {
-        console.error("Failed to load habit data:", error);
-      } finally {
-        setIsLoading(false);
+         toast({ title: "Error", description: "Could not log practice time.", variant: "destructive"});
+         loadDataAndLogLogin(); // Reload data on error
       }
-    };
-    loadData();
-  }, [userId]);
+   }
+
+   // Simulate attending a session
+    const logSessionAttended = async () => {
+       if (!habitData) return;
+       console.log("Logging session attendance...");
+        try {
+            setHabitData(prev => prev ? ({
+                ...prev,
+                sessionsAttendedThisWeek: (prev.sessionsAttendedThisWeek || 0) + 1
+            }) : null);
+           const updatedData = await updateHabitData(userId, { sessionsAttendedThisWeek: 1 }); // Send increment of 1
+           setHabitData(updatedData);
+           toast({title: "Session Logged!", description: "Attendance added to your weekly total."});
+        } catch (error) {
+           toast({ title: "Error", description: "Could not log session attendance.", variant: "destructive"});
+           loadDataAndLogLogin(); // Reload data on error
+        }
+    }
+
 
    const getProgress = (value: number | undefined, goal: number | undefined): number => {
        if (goal && goal > 0 && value !== undefined) {
@@ -105,6 +188,19 @@ export default function HabitTrackerPage() {
        }
        return 0;
    }
+
+   // Define achievements based on habitData
+   const achievements = useMemo(() => {
+       if (!habitData) return [];
+       const achieved = [];
+        if (habitData.loginStreak >= 7) achieved.push({ id: 'streak7', name: '7-Day Streak', icon: Zap, color: 'text-green-600 bg-green-100 dark:bg-green-900' });
+        if (habitData.loginStreak >= 3) achieved.push({ id: 'streak3', name: '3-Day Streak', icon: Zap, color: 'text-blue-600 bg-blue-100 dark:bg-blue-900' });
+       if (habitData.sessionsAttendedThisWeek >= (habitData.weeklySessionGoal || 3)) achieved.push({ id: 'sessionsGoal', name: 'Weekly Session Goal', icon: CalendarCheck, color: 'text-purple-600 bg-purple-100 dark:bg-purple-900'});
+       if (habitData.practiceMinutesThisWeek >= (habitData.weeklyPracticeGoal || 120)) achieved.push({ id: 'practiceGoal', name: 'Weekly Practice Goal', icon: Clock, color: 'text-orange-600 bg-orange-100 dark:bg-orange-900'});
+       // Add more complex achievements later
+       return achieved;
+   }, [habitData]);
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -120,136 +216,104 @@ export default function HabitTrackerPage() {
           <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
         </div>
       ) : habitData ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Login Streak Card */}
-          <Card className="shadow hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Login Streak</CardTitle>
-              <Zap className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">{habitData.loginStreak} Day{habitData.loginStreak !== 1 ? 's' : ''}</div>
-              <p className="text-xs text-muted-foreground">Keep the momentum going!</p>
-              {/* Optionally show a small progress bar towards next milestone */}
-            </CardContent>
-          </Card>
+        <div className="space-y-6">
+           {/* Core Stats Grid */}
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             {/* Login Streak Card */}
+             <Card className="shadow hover:shadow-md transition-shadow">
+               <CardHeader className="flex flex-row items-center justify-between pb-2">
+                 <CardTitle className="text-sm font-medium">Login Streak</CardTitle>
+                 <Zap className="h-4 w-4 text-yellow-500" />
+               </CardHeader>
+               <CardContent>
+                 <div className="text-2xl font-bold text-primary">{habitData.loginStreak} Day{habitData.loginStreak !== 1 ? 's' : ''}</div>
+                 <p className="text-xs text-muted-foreground">
+                    {habitData.loginStreak > 0 ? `Last login: ${habitData.lastLogin ? formatDistanceToNow(habitData.lastLogin, { addSuffix: true }) : 'Just now'}` : 'Log in daily to build your streak!'}
+                 </p>
+               </CardContent>
+             </Card>
 
-          {/* Sessions Attended Card */}
-          <Card className="shadow hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Sessions This Week</CardTitle>
-              <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-               {habitData.weeklySessionGoal !== undefined ? (
-                  <>
-                    <div className="text-2xl font-bold">
-                        {habitData.sessionsAttended} / {habitData.weeklySessionGoal}
-                    </div>
-                    <Progress value={getProgress(habitData.sessionsAttended, habitData.weeklySessionGoal)} className="mt-2 h-2" />
-                    <p className="text-xs text-muted-foreground mt-1">Towards your weekly goal.</p>
-                  </>
-               ) : (
-                  <>
-                     <div className="text-2xl font-bold">{habitData.sessionsAttended}</div>
-                     <p className="text-xs text-muted-foreground">Total sessions attended.</p>
-                  </>
-               )}
-            </CardContent>
-             {/* TODO: Add button to set/adjust goal */}
-             {/* <CardFooter><Button variant="link" size="sm">Set Goal</Button></CardFooter> */}
-          </Card>
-
-          {/* Practice Time Card */}
-          <Card className="shadow hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Practice This Week</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-               {habitData.weeklyPracticeGoal !== undefined ? (
-                    <>
-                       <div className="text-2xl font-bold">
-                           {habitData.practiceMinutes} / {habitData.weeklyPracticeGoal} min
-                       </div>
-                       <Progress value={getProgress(habitData.practiceMinutes, habitData.weeklyPracticeGoal)} className="mt-2 h-2" />
-                        <p className="text-xs text-muted-foreground mt-1">Towards your weekly goal.</p>
-                    </>
-               ) : (
-                    <>
-                       <div className="text-2xl font-bold">{habitData.practiceMinutes} min</div>
-                       <p className="text-xs text-muted-foreground">Total practice time.</p>
-                    </>
-               )}
-            </CardContent>
-             {/* <CardFooter><Button variant="link" size="sm">Set Goal</Button></CardFooter> */}
-          </Card>
-
-           {/* Placeholder: Weekly Goal Summary */}
-           <Card className="md:col-span-2 lg:col-span-1 shadow hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                 <CardTitle className="text-sm font-medium">Weekly Goals</CardTitle>
-                 <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="space-y-3">
-                  <div className="text-sm">
-                      <p>Sessions: {habitData.sessionsAttended} / {habitData.weeklySessionGoal || 'N/A'}</p>
-                      <Progress value={getProgress(habitData.sessionsAttended, habitData.weeklySessionGoal)} className="mt-1 h-1" />
-                  </div>
-                   <div className="text-sm">
-                      <p>Practice: {habitData.practiceMinutes} / {habitData.weeklyPracticeGoal || 'N/A'} min</p>
-                      <Progress value={getProgress(habitData.practiceMinutes, habitData.weeklyPracticeGoal)} className="mt-1 h-1" />
-                  </div>
-              </CardContent>
-                <CardFooter>
-                    <Button variant="link" size="sm" className="text-xs" onClick={() => alert("Set/Adjust Goals (not implemented)")}>Adjust Goals</Button>
+             {/* Sessions Attended Card */}
+             <Card className="shadow hover:shadow-md transition-shadow">
+               <CardHeader className="flex flex-row items-center justify-between pb-2">
+                 <CardTitle className="text-sm font-medium">Sessions This Week</CardTitle>
+                 <CalendarCheck className="h-4 w-4 text-blue-500" />
+               </CardHeader>
+               <CardContent>
+                   <div className="text-2xl font-bold">
+                       {habitData.sessionsAttendedThisWeek} / {habitData.weeklySessionGoal}
+                   </div>
+                   <Progress value={getProgress(habitData.sessionsAttendedThisWeek, habitData.weeklySessionGoal)} aria-label={`${getProgress(habitData.sessionsAttendedThisWeek, habitData.weeklySessionGoal)}% of weekly session goal`} className="mt-2 h-2" />
+                   <p className="text-xs text-muted-foreground mt-1">Towards your weekly goal.</p>
+               </CardContent>
+                <CardFooter className="pt-0 pb-3 px-4">
+                    <Button variant="outline" size="sm" className="text-xs" onClick={logSessionAttended}>Log Session (+1)</Button>
                 </CardFooter>
+             </Card>
+
+             {/* Practice Time Card */}
+             <Card className="shadow hover:shadow-md transition-shadow">
+               <CardHeader className="flex flex-row items-center justify-between pb-2">
+                 <CardTitle className="text-sm font-medium">Practice This Week</CardTitle>
+                 <Clock className="h-4 w-4 text-green-500" />
+               </CardHeader>
+               <CardContent>
+                   <div className="text-2xl font-bold">
+                       {habitData.practiceMinutesThisWeek} / {habitData.weeklyPracticeGoal} min
+                   </div>
+                   <Progress value={getProgress(habitData.practiceMinutesThisWeek, habitData.weeklyPracticeGoal)} aria-label={`${getProgress(habitData.practiceMinutesThisWeek, habitData.weeklyPracticeGoal)}% of weekly practice goal`} className="mt-2 h-2" />
+                   <p className="text-xs text-muted-foreground mt-1">Towards your weekly goal.</p>
+               </CardContent>
+                <CardFooter className="pt-0 pb-3 px-4">
+                    {/* Simple buttons to simulate logging practice */}
+                   <Button variant="outline" size="sm" className="text-xs mr-2" onClick={() => logPracticeTime(15)}>Log 15 min</Button>
+                   <Button variant="outline" size="sm" className="text-xs" onClick={() => logPracticeTime(30)}>Log 30 min</Button>
+                </CardFooter>
+             </Card>
+           </div>
+
+           {/* Achievements Section */}
+            <Card className="shadow hover:shadow-md transition-shadow">
+              <CardHeader className="pb-2">
+                 <CardTitle className="text-base font-medium flex items-center"><Award className="h-5 w-5 mr-2 text-amber-500"/> Achievements</CardTitle>
+                 <CardDescription className="text-xs">Badges earned based on your habits.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-4 p-4 min-h-[80px]">
+                 {achievements.length > 0 ? (
+                    achievements.map(ach => (
+                       <div key={ach.id} className="flex flex-col items-center text-center w-20 group" title={ach.name}>
+                           <div className={`p-3 rounded-full ${ach.color} transition-transform group-hover:scale-110`}>
+                               <ach.icon className={`h-6 w-6`} />
+                           </div>
+                           <span className="text-xs mt-1 text-muted-foreground truncate w-full">{ach.name}</span>
+                       </div>
+                    ))
+                 ) : (
+                    <p className="text-sm text-muted-foreground w-full text-center py-4">Keep going to unlock achievements!</p>
+                 )}
+              </CardContent>
            </Card>
 
-           {/* Placeholder: Achievements/Badges */}
-            <Card className="md:col-span-2 lg:col-span-2 shadow hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                 <CardTitle className="text-sm font-medium flex items-center"><Award className="h-4 w-4 mr-1"/> Achievements</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-4 items-center justify-center text-center text-muted-foreground py-6">
-                  {/* Example Badges */}
-                 <div className="flex flex-col items-center">
-                     <div className={`p-3 rounded-full ${habitData.loginStreak >= 7 ? 'bg-green-100 dark:bg-green-900' : 'bg-muted'}`}>
-                         <Zap className={`h-6 w-6 ${habitData.loginStreak >= 7 ? 'text-green-600' : 'text-muted-foreground'}`} />
-                     </div>
-                     <span className="text-xs mt-1">7-Day Streak</span>
-                 </div>
-                  <div className="flex flex-col items-center">
-                     <div className={`p-3 rounded-full ${habitData.sessionsAttended >= 5 ? 'bg-blue-100 dark:bg-blue-900' : 'bg-muted'}`}>
-                         <CalendarCheck className={`h-6 w-6 ${habitData.sessionsAttended >= 5 ? 'text-blue-600' : 'text-muted-foreground'}`} />
-                     </div>
-                     <span className="text-xs mt-1">5 Sessions</span>
-                 </div>
-                  <div className="flex flex-col items-center">
-                     <div className={`p-3 rounded-full ${habitData.practiceMinutes >= 180 ? 'bg-purple-100 dark:bg-purple-900' : 'bg-muted'}`}>
-                         <Clock className={`h-6 w-6 ${habitData.practiceMinutes >= 180 ? 'text-purple-600' : 'text-muted-foreground'}`} />
-                     </div>
-                     <span className="text-xs mt-1">3 Hours Practice</span>
-                 </div>
-                 <p className="text-sm w-full mt-4">More achievements coming soon!</p>
-              </CardContent>
+           {/* Info/Settings Card */}
+           <Card className="border-dashed border-sky-500 bg-sky-50 dark:bg-sky-900/20">
+               <CardHeader>
+                   <CardTitle className="flex items-center text-sky-700 dark:text-sky-300"><Info className="h-5 w-5 mr-2"/> How Habits Work</CardTitle>
+                   <CardDescription className="text-sky-600 dark:text-sky-400">
+                      Your activity is logged automatically. Consistency builds strong learning habits! We can send optional reminders and encouragements (manage in settings). Weekly stats reset on Monday.
+                   </CardDescription>
+               </CardHeader>
+                <CardFooter>
+                    <Button variant="link" size="sm" className="text-xs text-sky-700 dark:text-sky-300" onClick={() => alert("Set/Adjust Goals & Notifications (not implemented)")}>Adjust Goals & Notifications</Button>
+                </CardFooter>
            </Card>
 
         </div>
       ) : (
         <div className="text-center py-10 text-muted-foreground">
-           <p>Could not load your habit data.</p>
+           <p>Could not load your habit data. Please try refreshing.</p>
+           <Button variant="outline" onClick={loadDataAndLogLogin} className="mt-4">Refresh</Button>
         </div>
       )}
-
-       <Card className="mt-8 border-dashed border-sky-500">
-           <CardHeader>
-               <CardTitle className="flex items-center"><Info className="h-5 w-5 mr-2 text-sky-500"/> How it Works</CardTitle>
-               <CardDescription>
-                  This tracker automatically logs your activity like logins, completed sessions, and time spent on practice exercises. Consistent engagement helps build strong learning habits. We'll send occasional reminders and encouragement via notifications (manage in settings).
-               </CardDescription>
-           </CardHeader>
-       </Card>
     </div>
   );
 }
