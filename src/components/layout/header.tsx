@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { BookOpen, Bot, Calendar, GraduationCap } from 'lucide-react';
+import { BookOpen, Bot, Calendar, GraduationCap, HelpCircle } from 'lucide-react'; // Added HelpCircle for Quizzes
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { usePathname } from 'next/navigation';
@@ -17,6 +17,7 @@ import React from 'react';
 const navItems = [
   { href: '/tutors', label: 'Find Tutors', icon: GraduationCap },
   { href: '/booking', label: 'Booking', icon: Calendar },
+  { href: '/quizzes', label: 'Quizzes', icon: HelpCircle }, // Added Quizzes
   { href: '/ai-companion', label: 'AI Companion', icon: Bot },
 ];
 
@@ -42,7 +43,8 @@ export default function Header() {
               href={item.href}
               className={cn(
                 'transition-colors hover:text-accent',
-                pathname?.startsWith(item.href)
+                // Match specific routes or broader paths like /quizzes/*
+                pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
                   ? 'text-foreground font-semibold'
                   : 'text-muted-foreground'
               )}
@@ -70,7 +72,7 @@ export default function Header() {
                     onClick={closeSheet}
                     className={cn(
                       'flex items-center space-x-2 p-2 rounded-md transition-colors hover:bg-accent hover:text-accent-foreground',
-                       pathname?.startsWith(item.href)
+                       pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href))
                         ? 'bg-muted text-foreground font-semibold'
                         : 'text-muted-foreground'
                     )}
