@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Briefcase, Users, Mail, Lock } from 'lucide-react'; // Using Briefcase for Tutor
+import { Input } from '@/components/ui/input'; // Import Input
+import { GraduationCap, Briefcase, Users, Mail, Lock, Fingerprint } from 'lucide-react'; // Using Briefcase for Tutor
 import { cn } from '@/lib/utils';
 
 // Define Role type
@@ -27,8 +28,8 @@ export default function LoginPage() {
     // or set the context for the subsequent login method.
     // For this example, we just highlight the card and potentially show email form.
     console.log(`Selected role: ${role}`);
-    // Example: Show email form immediately after selecting role
-    // setShowEmailLogin(true);
+    // Example: Don't show email form immediately after selecting role
+    setShowEmailLogin(false);
   };
 
   const handleEmailContinue = (e: React.FormEvent) => {
@@ -43,7 +44,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] p-4 bg-gradient-to-br from-blue-100 via-white to-orange-100 dark:from-blue-900/30 dark:via-background dark:to-orange-900/30">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] p-4 bg-gradient-to-br from-[#DCEEFF] via-background to-[#F8F9FF] dark:from-blue-900/30 dark:via-background dark:to-orange-900/30">
       <div className="text-center max-w-3xl mx-auto mb-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground animate-fade-in-up">
           Welcome to <span className="text-accent">TutorVerse</span> — Personalized Learning, Evolved
@@ -89,16 +90,16 @@ export default function LoginPage() {
          {!showEmailLogin && selectedRole && (
            <div className="text-center space-y-3">
              <p className="text-muted-foreground text-sm">Sign in or create an account to continue as a {selectedRole}.</p>
-             <Button onClick={handleGoogleLogin} variant="outline" className="w-full text-foreground hover:bg-muted/50">
-               <GoogleIcon /> Continue with Google
+             <Button onClick={handleGoogleLogin} variant="outline" className="w-full text-foreground hover:bg-muted/50 active:scale-[0.98] transition-transform duration-100">
+               <GoogleIcon /> <span className="ml-2">Continue with Google</span>
              </Button>
-             <Button onClick={() => setShowEmailLogin(true)} variant="outline" className="w-full text-foreground hover:bg-muted/50">
-               <Mail /> Continue with Email
+             <Button onClick={() => setShowEmailLogin(true)} variant="outline" className="w-full text-foreground hover:bg-muted/50 active:scale-[0.98] transition-transform duration-100">
+               <Mail /> <span className="ml-2">Continue with Email</span>
              </Button>
              {/* Optional: Biometric placeholder */}
-             {/* <Button variant="outline" className="w-full text-muted-foreground hover:bg-muted/50 opacity-50 cursor-not-allowed" disabled>
-               <Fingerprint /> Continue with Biometric (Mobile)
-             </Button> */}
+              <Button variant="outline" className="w-full text-muted-foreground hover:bg-muted/50 opacity-50 cursor-not-allowed md:hidden" disabled>
+               <Fingerprint /> <span className="ml-2">Continue with Biometric (Mobile)</span>
+             </Button>
            </div>
          )}
 
@@ -110,14 +111,14 @@ export default function LoginPage() {
              <CardContent>
                <form onSubmit={handleEmailContinue} className="space-y-4">
                  <div className="relative">
-                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                    <Input type="email" placeholder="Email Address" required className="pl-10"/>
                  </div>
                  <div className="relative">
-                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                    <Input type="password" placeholder="Password" required className="pl-10"/>
                  </div>
-                 <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Continue</Button>
+                 <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 active:scale-[0.98] transition-transform duration-100">Continue</Button>
                  <Button variant="link" size="sm" className="w-full text-muted-foreground" onClick={() => setShowEmailLogin(false)}>
                    Back to other login methods
                  </Button>
@@ -153,6 +154,7 @@ function RoleCard({ role, title, icon: Icon, description, onSelect, isSelected, 
     <Card
       className={cn(
         "relative overflow-hidden rounded-xl border-2 transition-all duration-300 ease-out cursor-pointer group",
+        "hover:-translate-y-1", // Add subtle lift on hover
         isSelected
           ? "border-primary shadow-2xl scale-105 bg-card/90 backdrop-blur-sm"
           : "border-transparent hover:border-primary/50 hover:shadow-lg bg-card/70 hover:bg-card/80 backdrop-blur-sm",
@@ -171,7 +173,8 @@ function RoleCard({ role, title, icon: Icon, description, onSelect, isSelected, 
       <CardHeader className="items-center text-center pt-10 pb-4">
         <div className={cn(
              "p-4 rounded-full mb-4 transition-all duration-300 ease-out",
-             isSelected ? 'bg-primary/10 scale-110' : 'bg-muted group-hover:bg-primary/5'
+             "bg-muted group-hover:bg-primary/5 group-hover:scale-110", // Apply hover effect to icon container
+             isSelected && 'bg-primary/10 scale-110'
         )}>
           <Icon className={cn("h-10 w-10 transition-colors duration-300", isSelected ? 'text-primary' : 'text-muted-foreground group-hover:text-primary/80')} />
         </div>
@@ -180,18 +183,19 @@ function RoleCard({ role, title, icon: Icon, description, onSelect, isSelected, 
       <CardContent className="text-center px-6 pb-8 min-h-[100px]">
         <CardDescription className="text-base">{description}</CardDescription>
       </CardContent>
+       {/* Frosted Glass Effect (applied on hover) */}
        <div className={cn(
           "absolute inset-0 rounded-xl pointer-events-none",
            "transition-all duration-300 ease-out",
-           "bg-gradient-to-br from-white/5 to-transparent opacity-0", // Frosted effect base
-           "group-hover:opacity-30", // Apply effect on hover
-           isSelected && "opacity-50 ring-2 ring-primary/50" // Stronger effect when selected
+           "bg-gradient-to-br from-white/5 to-transparent opacity-0", // Base effect, hidden
+           "group-hover:opacity-30 group-hover:backdrop-blur-[2px]", // Apply effect on hover
+           isSelected && "opacity-50 ring-2 ring-primary/50 backdrop-blur-[3px]" // Stronger effect when selected
        )}></div>
         <div className="p-4 pt-0 text-center">
           <Button
             variant={isSelected ? "default" : "secondary"}
              className={cn(
-               "w-full rounded-full transition-all duration-200 ease-out transform group-hover:scale-105",
+               "w-full rounded-full transition-all duration-200 ease-out transform group-hover:scale-105 active:scale-[1.02]", // Button animation on hover/active
                isSelected ? "bg-primary text-primary-foreground" : "bg-accent/10 text-accent hover:bg-accent/20"
              )}
              tabIndex={-1} // Button inside a clickable card
@@ -203,31 +207,4 @@ function RoleCard({ role, title, icon: Icon, description, onSelect, isSelected, 
   );
 }
 
-// Keyframes and Animations (can be moved to globals.css if preferred)
-// Add these to your globals.css or wrap in a <style jsx> tag if needed:
-/*
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out forwards;
-  opacity: 0; /* Start hidden */
-}
-.animation-delay-200 {
-  animation-delay: 0.2s;
-}
-.animation-delay-400 {
-  animation-delay: 0.4s;
-}
-.animation-delay-600 {
-  animation-delay: 0.6s;
-}
-*/
-
+    
