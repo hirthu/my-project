@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist_Sans } from 'geist/font/sans'; // Correct import
+import { GeistSans } from 'geist/font/sans'; // Import the font object
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -7,11 +7,11 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import Providers from '@/components/providers';
 
-// Initialize Geist Sans font
-const geistSans = Geist_Sans({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
+// No need to call GeistSans as a function if it's the configured object
+// const geistSans = GeistSans({
+//   variable: '--font-geist-sans',
+//   subsets: ['latin'],
+// });
 
 export const metadata: Metadata = {
   title: 'TutorVerse - Personalized Learning', // More specific title
@@ -25,8 +25,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      {/* Apply the font variable to the body */}
-      <body className={`${geistSans.variable} font-sans antialiased flex flex-col min-h-screen`}>
+      {/* Apply the font variable directly from the imported object */}
+      <body className={`${GeistSans.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <Providers>
           <ThemeProvider
             attribute="class"
