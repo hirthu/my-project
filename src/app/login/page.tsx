@@ -206,5 +206,3 @@ function RoleCard({ role, title, icon: Icon, description, onSelect, isSelected, 
     </Card>
   );
 }
-
-    
