@@ -84,7 +84,8 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-geist-sans), sans-serif; /* Update font family */
+    /* Apply Geist Sans font using the variable */
+    font-family: var(--font-geist-sans), sans-serif;
   }
   button, [role="button"], input[type="submit"], input[type="reset"] {
     @apply transition-transform duration-100 ease-in-out active:scale-[0.98];
@@ -101,7 +102,7 @@ a {
   @apply transition-colors duration-150 ease-in-out hover:text-accent;
 }
 
-/* Animation keyframes and utility classes previously in page.tsx */
+/* Animation keyframes and utility classes */
 @layer utilities {
   @keyframes fade-in-up {
     from {
@@ -127,3 +128,4 @@ a {
     animation-delay: 0.6s;
   }
 }
+
